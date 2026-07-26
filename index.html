@@ -87,6 +87,26 @@ body{background:var(--bg);color:var(--tx);font-family:-apple-system,BlinkMacSyst
 .vh li{list-style:none;font-size:13.5px;padding-left:15px;position:relative;margin-bottom:7px}
 .vh li:last-child{margin-bottom:0}
 .vh li:before{content:"";position:absolute;left:0;top:8px;width:5px;height:5px;border-radius:50%;background:var(--lav)}
+.sumb{margin-bottom:12px}
+.sumb:last-of-type{margin-bottom:0}
+.sumt{font-size:10.5px;font-weight:750;text-transform:uppercase;letter-spacing:.09em;color:var(--br2);margin-bottom:8px}
+.suml{font-size:13.5px;padding-left:15px;position:relative;margin-bottom:6px;line-height:1.55}
+.suml:before{content:"";position:absolute;left:0;top:8px;width:5px;height:5px;border-radius:50%;background:var(--lav)}
+.suml b{font-family:var(--mono);font-weight:600}
+.warnx{color:var(--sun2)}
+.summore{font-size:11.5px;color:var(--tx3);border-top:1px dashed var(--line2);padding-top:10px;margin-top:12px;font-style:italic}
+.logtop{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}
+.flab{display:block;font-size:10px;font-weight:750;text-transform:uppercase;letter-spacing:.07em;color:var(--tx3);margin-bottom:5px}
+.logtop input,.logtop select{min-width:150px}
+.logtbl th{white-space:nowrap}
+.logtbl td{padding:6px 5px;vertical-align:top}
+.logtbl .exname{padding-left:8px}
+.logtbl .exname div:first-child{font-weight:600;font-size:13px}
+.logtbl .plan{font-size:10.5px;color:var(--tx3);font-family:var(--mono);margin-top:2px}
+.logtbl input{border:1px solid var(--line2);background:var(--bg2)}
+.logtbl input.mini{width:66px;font-family:var(--mono);text-align:center}
+.logacts{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-top:14px}
+.planhint{font-size:11px;color:var(--tx3);font-family:var(--mono);margin:5px 0 7px}
 .chart{position:relative;height:190px}
 .warn{background:var(--sunbg);border:1px solid rgba(242,166,60,.32);border-radius:var(--rs);padding:12px 14px;font-size:13px;line-height:1.6}
 .warn b{color:var(--sun2)}
@@ -246,7 +266,7 @@ function im(k){return IMG[k]||'';}
 let HEALTH=[],EVENTS=[],MAIL={n:0,items:[]},charts={};
 let PAGE=DB.get('page','home'),SUB=DB.get('sub','tracker');
 let HIST=[];
-let TSEC=DB.get('tsec','gym'),NSEC=DB.get('nsec','plan'),GSEC=DB.get('gsec','buffet'),RSEL=null;
+let TSEC=DB.get('tsec','logtoday'),NSEC=DB.get('nsec','plan'),GSEC=DB.get('gsec','buffet'),RSEL=null;
 let CALM=new Date(),CALSEL=iso(new Date()),TDAY=null;
 
 /* ══════ nav ══════ */
@@ -277,7 +297,7 @@ function push(){const c=snap();const l=HIST[HIST.length-1];
 function crumb(){
  const names={home:'Home',fitness:'Fitness',talk:'Talk to Vhagar',settings:'Settings',finance:'Finance',tasks:'Tasks',business:'GearWithAI'};
  const sn={tracker:'Health tracker',training:'Training',nutrition:'Nutrition',guides:'Guides'};
- const tn={gym:'Gym plan',log:'Workout log',dumbbell:'Dumbbell',noequip:'No equipment',measure:'Measurements'};
+ const tn={logtoday:'Log a session',gym:'Gym plan',log:'History',dumbbell:'Dumbbell',noequip:'No equipment',measure:'Measurements'};
  const nn={plan:'Nutrition plan',plate:'Balance your plate',recipes:'Recipe book'};
  const gn={buffet:'Buffet',order:'Ordering out',travel:'Travel'};
  let parts=[names[PAGE]||PAGE];
@@ -342,7 +362,7 @@ function pgHome(){
  $('body').innerHTML=
   '<div style="margin-bottom:16px"><div style="font-size:23px;font-weight:800;letter-spacing:-.025em">Home</div>'+
   '<div class="mut" style="font-size:13px">'+new Date().toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'})+'</div></div>'+
-  '<div class="vh" style="margin-bottom:14px"><div class="h">Vhagar</div><ul id="vhL"><li class="mut">Reading…</li></ul></div>'+
+  '<div class="vh" style="margin-bottom:14px"><div class="h">Vhagar summary</div><div id="vhL"><div class="mut">Reading…</div></div></div>'+
   '<div class="grid gcal" style="margin-bottom:13px">'+
    '<div class="card"><div class="calhd"><div class="m" id="calM"></div><div style="display:flex;gap:6px">'+
     '<button class="navb" onclick="mv(-1)">&#8249;</button><button class="btn gh sm" onclick="mvToday()">Today</button><button class="navb" onclick="mv(1)">&#8250;</button></div></div><div id="cal"></div>'+
@@ -410,17 +430,43 @@ function showDay(k){
  $('dayB').innerHTML=h;
 }
 function vhagarNotes(){
- const el=$('vhL');if(!el)return;const o=[];
- const td=EVENTS.filter(e=>iso(evD(e))===iso(new Date()));
- o.push(td.length?td.length+' thing'+(td.length>1?'s':'')+' on today.':'Calendar is empty today. Nothing scheduled is nothing protected.');
- const sl=HEALTH.filter(r=>sleepTotal(r.sleep)!=null).length;
- if(HEALTH.length&&sl<HEALTH.length/2)o.push('Sleep captured on '+sl+' of '+HEALTH.length+' nights. Wear the watch to bed and recovery becomes readable.');
- const logs=DB.get('wlog',{}),n=Object.keys(logs).length;
- o.push(n?n+' session'+(n===1?'':'s')+' logged by hand.':'Nothing logged yet. Open Talk to Vhagar after your next session.');
+ const el=$('vhL');if(!el)return;
+ el.innerHTML=sumFitness();
+}
+function sumBlock(title,lines,tone){
+ return '<div class="sumb"><div class="sumt '+(tone||'')+'">'+esc(title)+'</div>'+
+  lines.map(l=>'<div class="suml">'+l+'</div>').join('')+'</div>';
+}
+function sumFitness(){
+ if(!HEALTH.length)return sumBlock('Fitness',['<span class="mut">No health data loaded.</span>']);
+ const L=HEALTH[HEALTH.length-1],a=L.activity||{},h=L.heart||{};
+ const n=HEALTH.length;
+ const avg=k=>{const v=HEALTH.map(r=>N((r.activity||{})[k])).filter(x=>x!=null);return v.length?Math.round(v.reduce((s,x)=>s+x,0)/v.length):null;};
+ const strength=HEALTH.filter(r=>(r.workouts||[]).some(w=>/weight|strength/i.test(w.type||''))).length;
+ const anyWk=HEALTH.filter(r=>(r.workouts||[]).length).length;
+ const slN=HEALTH.filter(r=>sleepTotal(r.sleep)!=null);
+ const slAvg=slN.length?Math.round(slN.reduce((s,r)=>s+sleepTotal(r.sleep),0)/slN.length):null;
  const w=lastOf('weight_kg','body');
- if(w.v)o.push('Nutrition plan assumes 82 kg. The watch says '+fmt(w.v,1)+' kg. Settle that before trusting any calorie target.');
- if(MAIL.n>100)o.push(fmt(MAIL.n)+' unread emails, mostly newsletters. A filter, not your attention.');
- el.innerHTML=o.map(t=>'<li>'+esc(t)+'</li>').join('');
+ const wAll=HEALTH.map(r=>N((r.body||{}).weight_kg)).filter(x=>x!=null);
+ const wTrend=wAll.length>1?(wAll[wAll.length-1]-wAll[0]):null;
+ const logs=DB.get('wlog',{});
+ const lines=[];
+ lines.push('<b>'+esc(L.date)+'</b> was the last day recorded, '+n+' day'+(n>1?'s':'')+' on file since '+esc(HEALTH[0].date)+'.');
+ lines.push('Latest: <b>'+fmt(a.steps)+'</b> steps, <b>'+fmt(a.exercise_minutes)+'</b> exercise minutes, resting heart rate <b>'+fmt(h.resting_heart_rate)+'</b>.');
+ lines.push('Averaging <b>'+fmt(avg('steps'))+'</b> steps and <b>'+fmt(avg('exercise_minutes'))+'</b> exercise minutes a day.');
+ lines.push('Trained on <b>'+anyWk+' of '+n+'</b> days, <b>'+strength+'</b> of those strength sessions.');
+ if(w.v!=null){
+  let t='Weight <b>'+fmt(w.v,1)+' kg</b> (logged '+esc(w.d)+')';
+  if(wTrend!=null&&Math.abs(wTrend)>=0.1)t+=', '+(wTrend<0?'down':'up')+' '+fmt(Math.abs(wTrend),1)+' kg across '+wAll.length+' readings';
+  lines.push(t+'. Too few readings to call a trend yet.');
+ } else lines.push('<span class="warnx">No weight logged.</span>');
+ if(slAvg!=null)lines.push('Sleep averaging <b>'+hm(slAvg)+'</b>, but only recorded on <b>'+slN.length+' of '+n+'</b> nights.');
+ else lines.push('<span class="warnx">Sleep not recorded at all. Wear the watch overnight and recovery becomes readable.</span>');
+ const nlog=Object.keys(logs).length;
+ lines.push(nlog?'<b>'+nlog+'</b> session'+(nlog===1?'':'s')+' logged by hand.':'<span class="mut">Nothing logged by hand yet.</span>');
+ lines.push('<span class="warnx">Nutrition plan assumes 82 kg. The watch says '+fmt(w.v,1)+' kg. Settle that before trusting any calorie target.</span>');
+ return sumBlock('Fitness',lines)+
+  '<div class="summore">GearWithAI, finance and mail summaries will sit under this once those pages exist.</div>';
 }
 
 /* ══════ TRACKER ══════ */
@@ -491,10 +537,10 @@ function mt(l,v){return '<div class="metric"><span class="mut">'+l+'</span><b>'+
 const SCHED_DEF={Mon:'pull1',Tue:'push1',Wed:'legs',Thu:'pull2',Fri:'push2',Sat:'abs',Sun:'rest'};
 
 function pgTrain(){
- const secs=[['gym','Gym plan'],['log','Workout log'],['dumbbell','Dumbbell'],['noequip','No equipment'],['measure','Measurements']];
+ const secs=[['logtoday','Log a session'],['gym','Gym plan'],['log','History'],['dumbbell','Dumbbell'],['noequip','No equipment'],['measure','Measurements']];
  $('body').innerHTML='<div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px">'+
   secs.map(s=>'<button class="btn '+(TSEC===s[0]?'':'gh')+'"  onclick="push();TSEC=\''+s[0]+'\';DB.set(\'tsec\',TSEC);render()">'+s[1]+'</button>').join('')+'</div><div id="tb"></div>';
- ({gym:secGym,log:secLog,dumbbell:secDumb,noequip:secNoEq,measure:secMeasure}[TSEC]||secGym)();
+ ({logtoday:secLogToday,gym:secGym,log:secLog,dumbbell:secDumb,noequip:secNoEq,measure:secMeasure}[TSEC]||secLogToday)();
 }
 function secGym(){
  const sc=Object.assign({},SCHED_DEF,DB.get('sched',{})),tn=WD[(new Date().getDay()+6)%7];
@@ -543,6 +589,91 @@ function setM(i,k,v){const r=DB.get('measure',Array.from({length:12},(_,j)=>({we
 function fillW(){const r=DB.get('measure',Array.from({length:12},(_,j)=>({week:'Week '+(j+1)})));const w=lastOf('weight_kg','body');
  if(!w.v)return alert('No weight in the watch data.');const i=r.findIndex(x=>!x.weight);if(i<0)return alert('All 12 weeks already have a weight.');
  r[i].weight=String(w.v);r[i].date=w.d;DB.set('measure',r);render();}
+
+/* ---- log a session: a real table ---- */
+function draftKey(){return 'draft_'+(DB.get('logdate',iso(new Date())));}
+function getDraft(){return DB.get(draftKey(),null);}
+function setDraft(d){DB.set(draftKey(),d);}
+function allSplits(){
+ const out=GYM.map(g=>({k:g.k,n:g.n,x:g.x.map(e=>({name:e[0],reps:e[1],sets:e[2],vid:e[3]}))}));
+ DB5.forEach(d=>out.push({k:'db_'+d.d.replace(/\s/g,''),n:'Dumbbell '+d.d+' - '+d.t,
+   x:d.x.map(e=>({name:e[0],reps:e[2],sets:e[1],vid:e[3]}))}));
+ return out;
+}
+function secLogToday(){
+ const date=DB.get('logdate',iso(new Date()));
+ const splits=allSplits();
+ let d=getDraft();
+ const saved=DB.get('wlog',{})[date];
+ if(!d&&saved){d={split:saved.splitKey||null,type:saved.type,rows:saved.items.map(i=>({name:i.name,sets:i.sets,reps:i.reps,weight:i.weight,vid:i.vid}))};}
+ const sel=d&&d.split?splits.find(s=>s.k===d.split):null;
+
+ let h='<div class="card" style="margin-bottom:13px"><h3>Log a session</h3>'+
+  '<div class="logtop">'+
+   '<div><label class="flab">Date</label><input type="date" value="'+esc(date)+'" onchange="DB.set(\'logdate\',this.value);render()"></div>'+
+   '<div style="flex:1;min-width:200px"><label class="flab">Workout</label><select onchange="pickSplit(this.value)">'+
+     '<option value="">Choose a split...</option>'+
+     splits.map(s=>'<option value="'+s.k+'"'+(d&&d.split===s.k?' selected':'')+'>'+esc(s.n)+'</option>').join('')+
+    '</select></div>'+
+   '<div><label class="flab">&nbsp;</label><button class="btn gh" onclick="go(\'talk\')">Log by voice</button></div>'+
+  '</div>'+
+  (saved?'<div style="margin-top:11px"><span class="b g">Already saved for '+esc(date)+'</span> <span class="mut" style="font-size:12px">editing will overwrite it</span></div>':'')+
+  '</div>';
+
+ if(!sel){h+='<div class="card"><div class="mut" style="font-size:13.5px">Pick a split above and every exercise in it appears here with boxes for sets, reps and weight.</div></div>';
+  $('tb').innerHTML=h;return;}
+
+ h+='<div class="card"><h3>'+esc(sel.n)+'<span class="mut" style="font-size:11.5px;font-weight:500">plan target shown under each name</span></h3>'+
+  '<div style="overflow-x:auto"><table class="logtbl"><thead><tr>'+
+   '<th style="width:38%">Exercise</th><th>Sets</th><th>Reps</th><th>Weight</th><th>Notes</th><th></th></tr></thead><tbody>'+
+  sel.x.map((e,i)=>{
+   const r=(d.rows&&d.rows[i])||{};
+   return '<tr><td class="exname"><div>'+esc(e.name)+'</div><div class="plan">plan: '+esc(String(e.sets))+' x '+esc(String(e.reps))+'</div></td>'+
+    '<td><input class="mini" inputmode="numeric" value="'+esc(r.sets==null?'':r.sets)+'" placeholder="'+esc(String(e.sets))+'" oninput="setRow('+i+',\'sets\',this.value)"></td>'+
+    '<td><input class="mini" inputmode="numeric" value="'+esc(r.reps==null?'':r.reps)+'" placeholder="'+esc(String(e.reps))+'" oninput="setRow('+i+',\'reps\',this.value)"></td>'+
+    '<td><input class="mini" inputmode="decimal" value="'+esc(r.weight==null?'':r.weight)+'" placeholder="kg" oninput="setRow('+i+',\'weight\',this.value)"></td>'+
+    '<td><input value="'+esc(r.note||'')+'" placeholder="optional" oninput="setRow('+i+',\'note\',this.value)"></td>'+
+    '<td>'+ytBtn(e.vid)+'</td></tr>';}).join('')+
+  '</tbody></table></div>'+
+  '<div class="logacts">'+
+   '<button class="btn" onclick="saveSession()">Save session</button>'+
+   '<button class="btn gh" onclick="fillPlan()">Fill with plan targets</button>'+
+   '<button class="btn gh" onclick="clearDraft()">Clear</button>'+
+   '<span class="mut" style="font-size:11.5px">Typing saves as you go. Nothing is lost if you close it.</span>'+
+  '</div></div>';
+ $('tb').innerHTML=h;
+}
+function pickSplit(k){
+ const d=getDraft()||{};d.split=k||null;
+ const s=allSplits().find(x=>x.k===k);
+ d.type=s?s.n:null;
+ if(!d.rows||!d.rows.length||d.split!==k)d.rows=s?s.x.map(()=>({})):[];
+ setDraft(d);render();
+}
+function setRow(i,f,v){const d=getDraft()||{rows:[]};d.rows=d.rows||[];d.rows[i]=d.rows[i]||{};
+ d.rows[i][f]=v===''?null:v;setDraft(d);}
+function fillPlan(){
+ const d=getDraft();if(!d||!d.split)return;
+ const s=allSplits().find(x=>x.k===d.split);
+ d.rows=s.x.map((e,i)=>Object.assign({sets:String(e.sets),reps:String(e.reps)},d.rows&&d.rows[i]?d.rows[i]:{}));
+ setDraft(d);render();
+}
+function clearDraft(){if(!confirm('Clear what you have entered for this date?'))return;DB.set(draftKey(),null);render();}
+function saveSession(){
+ const date=DB.get('logdate',iso(new Date()));
+ const d=getDraft();
+ if(!d||!d.split)return alert('Pick a workout first.');
+ const s=allSplits().find(x=>x.k===d.split);
+ const items=[];
+ s.x.forEach((e,i)=>{const r=(d.rows&&d.rows[i])||{};
+  if(r.sets||r.reps||r.weight||r.note)
+   items.push({name:e.name,sets:r.sets||null,reps:r.reps||null,weight:r.weight||null,unit:'kg',note:r.note||null,vid:e.vid});});
+ if(!items.length)return alert('Nothing filled in yet.');
+ const l=DB.get('wlog',{});
+ l[date]={date:date,type:s.n,splitKey:s.k,items:items,savedAt:new Date().toISOString()};
+ DB.set('wlog',l);DB.set(draftKey(),null);
+ TSEC='log';DB.set('tsec','log');render();
+}
 
 /* ══════ NUTRITION ══════ */
 
@@ -623,6 +754,7 @@ function pgTalk(){
     '<button class="btn" onclick="sendMsg($(\'cin\').value)">Send</button>'+
    '</div></div>';
  if(!CHAT.length)vSay("Hi Sunny. What do you want to do?",[["Log a workout","log a workout"],["Show today","what's on today"],["How am I doing","how am i doing"]]);
+ else if(FLOW.step==='ex')askEx();
  else drawChat();
 }
 function drawChat(){
@@ -641,56 +773,113 @@ function sendMsg(t){
  setTimeout(()=>handle(t),140);
 }
 function handle(t){
- const s=t.toLowerCase();
+ const s=t.toLowerCase().trim();
  if(FLOW.step==='idle'){
   if(/log|record|workout|session|gym|train/.test(s)){startLog();return;}
   if(/today|schedule|calendar/.test(s)){
    const ev=EVENTS.filter(e=>iso(evD(e))===iso(new Date()));
-   vSay(ev.length?'Today: '+ev.map(e=>esc(e.summary)+' at '+evT(e)).join(', ')+'.':'Nothing on your calendar today. Nothing scheduled is nothing protected.',[["Log a workout","log a workout"]]);return;}
-  if(/how am i|doing|progress|stats/.test(s)){
+   vSay(ev.length?'Today: '+ev.map(e=>esc(e.summary)+' at '+evT(e)).join(', ')+'.':'Nothing on your calendar today.',[["Log a workout","log a workout"]]);return;}
+  if(/show history|history/.test(s)){push();PAGE='fitness';SUB='training';TSEC='log';
+   DB.set('page','fitness');DB.set('sub','training');DB.set('tsec','log');render();return;}
+  if(/how am i|doing|progress|stats|summary/.test(s)){
    const L=HEALTH[HEALTH.length-1]||{},a=L.activity||{};
    const sl=HEALTH.filter(r=>sleepTotal(r.sleep)!=null).length;
-   vSay('Last recorded day was '+esc(L.date||'—')+'. '+fmt(a.steps)+' steps, '+fmt(a.exercise_minutes)+' exercise minutes. Sleep is only captured on '+sl+' of '+HEALTH.length+' nights, which is the biggest hole in your data.',[["Log a workout","log a workout"]]);return;}
-  vSay("I can log a workout, tell you what's on today, or summarise your numbers. Which one?",[["Log a workout","log a workout"],["Show today","what's on today"]]);return;
+   vSay('Last recorded day was '+esc(L.date||'-')+'. '+fmt(a.steps)+' steps, '+fmt(a.exercise_minutes)+' exercise minutes. Sleep captured on '+sl+' of '+HEALTH.length+' nights.',[["Log a workout","log a workout"]]);return;}
+  vSay("I can log a workout, tell you what's on today, or summarise your numbers.",[["Log a workout","log a workout"],["Show today","what's on today"]]);return;
  }
+
  if(FLOW.step==='date'){
   const d=parseDate(s);
-  if(!d){vSay("I didn't catch a date. Say today, yesterday, or a date like 24 July.",[["Today","today"],["Yesterday","yesterday"]]);return;}
+  if(!d){vSay("I did not catch a date. Say today, yesterday, or something like 24 July.",[["Today","today"],["Yesterday","yesterday"]]);return;}
   FLOW.draft.date=d;FLOW.step='type';
-  vSay('Got it, '+new Date(d+'T00:00:00').toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long'})+'. What kind of session?',
-   [["Push","push day"],["Pull","pull day"],["Legs","legs"],["Abs","abs"],["Dumbbell","dumbbell"],["Cardio","cardio"]]);return;
+  const splits=allSplits();
+  vSay('Got it, '+new Date(d+'T00:00:00').toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long'})+'. Which workout?',
+   splits.map(x=>[x.n.replace(/ - .*/,''),x.k]));
+  return;
  }
+
  if(FLOW.step==='type'){
-  let ty=null;Object.keys(DAYWORDS).sort((a,b)=>b.length-a.length).forEach(k=>{if(!ty&&s.indexOf(k)>=0)ty=DAYWORDS[k];});
-  FLOW.draft.type=ty||t.replace(/\b\w/g,c=>c.toUpperCase());FLOW.step='ex';
-  vSay('<b>'+esc(FLOW.draft.type)+'</b>. Now tell me the exercises. Say them however you like — for example <i>"bench press 3 sets 10 reps 40 kilos, cable cross 3 by 15"</i>. Say <b>done</b> when you have finished.',[["Done","done"]]);return;
+  const splits=allSplits();
+  let sp=splits.find(x=>x.k===t.trim());
+  if(!sp){const norm2=norm(s);
+   sp=splits.find(x=>norm(x.n).indexOf(norm2)>=0)||splits.find(x=>norm2&&norm(x.n).split(' ').some(w=>w.length>2&&norm2.indexOf(w)>=0));}
+  if(!sp){vSay('I did not recognise that split. Pick one:',splits.map(x=>[x.n.replace(/ - .*/,''),x.k]));return;}
+  FLOW.draft.split=sp.k;FLOW.draft.type=sp.n;FLOW.draft.rows=sp.x.map(()=>({}));FLOW.idx=0;FLOW.step='ex';
+  vSay('<b>'+esc(sp.n)+'</b>, '+sp.x.length+' exercises. I will go through them one at a time. Say <b>skip</b> for any you did not do, or <b>done</b> to stop early.');
+  askEx();return;
  }
+
  if(FLOW.step==='ex'){
-  if(/^(done|finished|that\'?s it|thats it|end|save)$/.test(s.trim())){
-   if(!FLOW.draft.items.length){vSay("Nothing matched yet, so there is nothing to save. Try naming an exercise, or say cancel.",[["Cancel","cancel"]]);return;}
-   FLOW.step='confirm';
-   vSay('Here is what I have:<div class="parsed">'+FLOW.draft.items.map(i=>'<div><span>'+esc(i.name)+'</span><b>'+esc(setStr(i))+'</b></div>').join('')+'</div>Save it?',[["Save","save it"],["Cancel","cancel"]]);return;}
-  if(/cancel|stop/.test(s)){FLOW={step:'idle',draft:null};vSay('Dropped it. Anything else?',[["Log a workout","log a workout"]]);return;}
-  const got=parseEx(t);
-  if(!got.length){vSay("I could not match that against your plan. Try the plain name, like <i>lat pulldown 3 sets of 12</i>.",[["Done","done"]]);return;}
-  got.forEach(g=>{const i=FLOW.draft.items.findIndex(x=>x.name===g.name);if(i>=0)FLOW.draft.items[i]=g;else FLOW.draft.items.push(g);});
-  FLOW.draft.raw=(FLOW.draft.raw?FLOW.draft.raw+' ':'')+t;
-  vSay('Added '+got.map(g=>'<b>'+esc(g.name)+'</b> '+esc(setStr(g))).join(', ')+'. Next one, or say done.',[["Done","done"]]);return;
+  const sp=allSplits().find(x=>x.k===FLOW.draft.split);
+  if(/^(done|finish|finished|stop|that.s it|thats it)$/.test(s)){reviewLog();return;}
+  if(/cancel/.test(s)){FLOW={step:'idle',draft:null};vSay('Dropped it.',[["Log a workout","log a workout"]]);return;}
+  if(/^(skip|no|nope|didn.t|did not)/.test(s)){FLOW.idx++;askEx();return;}
+  const p=parseSetsReps(t);
+  if(p.sets==null&&p.reps==null&&p.weight==null){
+   vSay('I need numbers. Try <i>"3 sets 12 reps 40 kilos"</i>, or just <i>"3 by 12"</i>.',[["Skip this one","skip"],["Done","done"]]);return;}
+  FLOW.draft.rows[FLOW.idx]={sets:p.sets,reps:p.reps,weight:p.weight};
+  const e=sp.x[FLOW.idx];
+  vSay('<b>'+esc(e.name)+'</b> - '+esc(setStr(p))+'. Saved.');
+  FLOW.idx++;askEx();return;
  }
+
  if(FLOW.step==='confirm'){
-  if(/save|yes|yep|ok|confirm/.test(s)){
-   const l=DB.get('wlog',{});
-   if(l[FLOW.draft.date]){FLOW.draft.items.forEach(i=>{const j=l[FLOW.draft.date].items.findIndex(x=>x.name===i.name);
-     if(j>=0)l[FLOW.draft.date].items[j]=i;else l[FLOW.draft.date].items.push(i);});l[FLOW.draft.date].type=FLOW.draft.type;}
-   else l[FLOW.draft.date]=FLOW.draft;
-   DB.set('wlog',l);
-   const d=FLOW.draft.date;FLOW={step:'idle',draft:null};
-   vSay('Saved to '+esc(d)+'. It will show on your calendar and in the workout log.',[["Log another","log a workout"],["See the log","show log"]]);return;}
-  if(/log|show/.test(s)){go('fitness','training');TSEC='log';DB.set('tsec','log');pgTrain();return;}
-  FLOW={step:'idle',draft:null};vSay('Dropped it. Anything else?',[["Log a workout","log a workout"]]);return;
+  if(/save|yes|yep|ok|confirm/.test(s)){commitLog();return;}
+  if(/edit|change|table/.test(s)){stashDraftToTable();return;}
+  FLOW={step:'idle',draft:null};vSay('Dropped it.',[["Log a workout","log a workout"]]);return;
  }
 }
-function startLog(){FLOW={step:'date',draft:{date:iso(new Date()),type:null,items:[],raw:''}};
+function askEx(){
+ const sp=allSplits().find(x=>x.k===FLOW.draft.split);
+ if(FLOW.idx>=sp.x.length){reviewLog();return;}
+ const e=sp.x[FLOW.idx];
+ vSay('<b>'+(FLOW.idx+1)+' of '+sp.x.length+'</b> &middot; '+esc(e.name)+
+  '<div class="planhint">plan: '+esc(String(e.sets))+' sets x '+esc(String(e.reps))+' reps</div>'+
+  'How many sets, reps and what weight?',
+  [['As planned',String(e.sets)+' sets '+String(e.reps).replace(/[^0-9-]/g,'')+' reps'],['Skip','skip'],['Done','done']]);
+}
+function parseSetsReps(text){
+ const c=wordNums(norm(text));
+ let sets=null,reps=null,weight=null;
+ let m=c.match(/(\d+)\s*(?:sets?|x|by)\s*(?:of\s*)?(\d+)/);
+ if(m){sets=+m[1];reps=+m[2];}
+ else{const a=c.match(/(\d+)\s*sets?/);if(a)sets=+a[1];
+      const b2=c.match(/(\d+)\s*reps?/);if(b2)reps=+b2[1];}
+ const w=c.match(/(\d+(?:\.\d+)?)\s*(kg|kilos?|kilograms?|lbs?|pounds?)/);
+ if(w)weight=+w[1];
+ else{const at=c.match(/(?:at|@|with)\s*(\d+(?:\.\d+)?)/);if(at)weight=+at[1];}
+ if(sets==null&&reps==null&&weight==null){
+  const nums=c.match(/\d+/g);
+  if(nums&&nums.length>=2){sets=+nums[0];reps=+nums[1];if(nums[2])weight=+nums[2];}
+ }
+ return {sets,reps,weight,unit:'kg'};
+}
+function reviewLog(){
+ const sp=allSplits().find(x=>x.k===FLOW.draft.split);
+ const rows=[];
+ sp.x.forEach((e,i)=>{const r=FLOW.draft.rows[i]||{};
+  if(r.sets||r.reps||r.weight)rows.push({name:e.name,sets:r.sets,reps:r.reps,weight:r.weight,unit:'kg',vid:e.vid});});
+ if(!rows.length){vSay('Nothing recorded, so nothing to save.',[["Start again","log a workout"]]);FLOW={step:'idle',draft:null};return;}
+ FLOW.draft.items=rows;FLOW.step='confirm';
+ vSay('<b>'+esc(sp.n)+'</b> on '+esc(FLOW.draft.date)+':<div class="parsed">'+
+  rows.map(r=>'<div><span>'+esc(r.name)+'</span><b>'+esc(setStr(r))+'</b></div>').join('')+'</div>Save it?',
+  [["Save","save it"],["Open in the table","edit in table"],["Cancel","cancel"]]);
+}
+function commitLog(){
+ const l=DB.get('wlog',{});const d=FLOW.draft;
+ l[d.date]={date:d.date,type:d.type,splitKey:d.split,items:d.items,savedAt:new Date().toISOString()};
+ DB.set('wlog',l);
+ const when=d.date;FLOW={step:'idle',draft:null};
+ vSay('Saved to '+esc(when)+'. It is on your calendar dot and in the history.',[["Log another","log a workout"],["See history","show history"]]);
+}
+function stashDraftToTable(){
+ const d=FLOW.draft;
+ DB.set('logdate',d.date);
+ DB.set('draft_'+d.date,{split:d.split,type:d.type,rows:d.rows});
+ FLOW={step:'idle',draft:null};
+ TSEC='logtoday';DB.set('tsec','logtoday');push();PAGE='fitness';SUB='training';DB.set('page','fitness');DB.set('sub','training');render();
+}
+function startLog(){FLOW={step:'date',idx:0,draft:{date:iso(new Date()),split:null,type:null,rows:[],items:[]}};
  vSay('Right. Which day is this for?',[["Today","today"],["Yesterday","yesterday"]]);}
 function parseDate(s){
  const t=new Date();
