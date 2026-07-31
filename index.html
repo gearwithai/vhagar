@@ -172,6 +172,23 @@ body{background:var(--bg);color:var(--tx);font-family:-apple-system,BlinkMacSyst
 .dietchip.nonveg{background:var(--rdbg);color:var(--rd)}
 .swap{display:flex;gap:10px;margin-top:11px;padding-top:11px;border-top:1px dashed var(--line2);font-size:12.5px;line-height:1.55}
 .swapt{font-size:9.5px;font-weight:750;text-transform:uppercase;letter-spacing:.07em;color:var(--gr);background:var(--grbg);padding:2px 8px;border-radius:var(--rp);height:17px;flex-shrink:0}
+.tickbox{width:24px;height:24px;border-radius:7px;border:1.5px solid var(--line2);background:var(--bg2);color:#fff;cursor:pointer;display:grid;place-items:center;font-size:13px;flex-shrink:0;padding:0;transition:.13s}
+.tickbox:hover{border-color:var(--gr)}
+.tickbox.on{background:var(--gr);border-color:var(--gr);color:#0B1F14;font-weight:800}
+.duestrip{display:flex;gap:13px;align-items:center;background:var(--sunbg);border:1px solid rgba(242,166,60,.4);border-radius:var(--r);padding:13px 16px;margin-bottom:13px;cursor:pointer;font-size:13.5px;transition:.13s}
+.duestrip:hover{background:rgba(242,166,60,.2)}
+.duen{width:30px;height:30px;border-radius:50%;background:var(--sun);color:#1a1420;display:grid;place-items:center;font-weight:800;font-size:14px;flex-shrink:0}
+.histt th{padding:5px 3px;text-align:center;font-size:9.5px}
+.histt td{padding:4px 3px;border-bottom:1px solid var(--line)}
+.hcell{display:inline-block;width:14px;height:14px;border-radius:4px;background:var(--surf2);border:1px solid var(--line)}
+.hcell.on{background:var(--gr);border-color:var(--gr)}
+.news .newsent{padding:11px 0;border-top:1px solid var(--line)}
+.news .newsent:first-of-type{border-top:none;padding-top:0}
+.newsh{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:7px;flex-wrap:wrap}
+.newsh b{font-size:13.5px}
+.newsi{font-size:12.5px;color:var(--tx2);line-height:1.6;padding-left:13px;position:relative;margin-bottom:5px}
+.newsi:before{content:"";position:absolute;left:0;top:8px;width:4px;height:4px;border-radius:50%;background:var(--lav)}
+.newsi b{color:var(--tx);font-weight:650}
 .chart{position:relative;height:190px}
 .warn{background:var(--sunbg);border:1px solid rgba(242,166,60,.32);border-radius:var(--rs);padding:12px 14px;font-size:13px;line-height:1.6}
 .warn b{color:var(--sun2)}
@@ -390,7 +407,8 @@ let CALM=new Date(),CALSEL=iso(new Date()),TDAY=null;
 /* ══════ nav ══════ */
 const NAV=[{id:'home',t:'Home',i:'M3 11l9-8 9 8v9a2 2 0 01-2 2h-4v-6H9v6H5a2 2 0 01-2-2z'},
            {id:'fitness',t:'Fitness',i:'M6.5 6.5l11 11M4 9l3-3 3 3-3 3zM14 19l3-3 3 3-3 3z'},
-           {id:'talk',t:'Talk to Vhagar',i:'M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z'}];
+           {id:'talk',t:'Talk to Vhagar',i:'M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z'},
+           {id:'reminders',t:'Reminders',i:'M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 01-3.4 0'}];
 const EXTRA=[{id:'settings',t:'Settings',i:'M12 15a3 3 0 100-6 3 3 0 000 6zM19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9'}];
 const SOON=[{id:'finance',t:'Finance',i:'M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6'},
             {id:'tasks',t:'Tasks',i:'M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11'},
@@ -413,7 +431,7 @@ function push(){const c=snap();const l=HIST[HIST.length-1];
   try{history.pushState({v:HIST.length},'','');}catch(e){}}
  if(HIST.length>40)HIST.shift();}
 function crumb(){
- const names={home:'Home',fitness:'Fitness',talk:'Talk to Vhagar',settings:'Settings',finance:'Finance',tasks:'Tasks',business:'GearWithAI'};
+ const names={home:'Home',fitness:'Fitness',talk:'Talk to Vhagar',reminders:'Reminders',settings:'Settings',finance:'Finance',tasks:'Tasks',business:'GearWithAI'};
  const sn={tracker:'Health tracker',training:'Training',meals:'Meals',nutrition:'Nutrition',guides:'Guides'};
  const tn={logtoday:'Log a session',gym:'Gym plan',log:'History',dumbbell:'Dumbbell',noequip:'No equipment',measure:'Measurements'};
  const nn={plan:'Nutrition plan',rules:'Weekly rules',plate:'Balance your plate',recipes:'Recipe book'};
@@ -439,6 +457,7 @@ function render(){
  else if(PAGE==='fitness')({tracker:pgTracker,training:pgTrain,meals:pgMeals,nutrition:pgNut,guides:pgGuides}[SUB]||pgTracker)();
  else if(PAGE==='talk')pgTalk();
  else if(PAGE==='settings')pgSettings();
+ else if(PAGE==='reminders')pgReminders();
  else pgSoon(PAGE);
  window.scrollTo(0,0);
 }
@@ -480,7 +499,9 @@ function pgHome(){
  $('body').innerHTML=
   '<div style="margin-bottom:16px"><div style="font-size:23px;font-weight:800;letter-spacing:-.025em">Home</div>'+
   '<div class="mut" style="font-size:13px">'+new Date().toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'})+'</div></div>'+
+  dueStrip()+
   '<div class="vh" style="margin-bottom:14px"><div class="h">Vhagar summary</div><div id="vhL"><div class="mut">Reading…</div></div></div>'+
+  whatsNew()+
   '<div class="grid gcal" style="margin-bottom:13px">'+
    '<div class="card"><div class="calhd"><div class="m" id="calM"></div><div style="display:flex;gap:6px">'+
     '<button class="navb" onclick="mv(-1)">&#8249;</button><button class="btn gh sm" onclick="mvToday()">Today</button><button class="navb" onclick="mv(1)">&#8250;</button></div></div><div id="cal"></div>'+
@@ -503,6 +524,13 @@ function pgHome(){
  $('mailB').innerHTML='<div style="margin-bottom:9px"><span class="b '+(MAIL.n>50?'r':'n')+'">'+fmt(MAIL.n)+' unread</span></div>'+
   ((MAIL.items||[]).slice(0,5).map(m=>'<div class="row"><div><div class="t">'+esc((m.subject||'(no subject)').slice(0,52))+'</div><div class="s">'+esc(String(m.sender||'').replace(/.*</,'').replace(/>.*/,''))+'</div></div><div class="tm">'+(m.date?new Date(m.date).toLocaleDateString(undefined,{day:'numeric',month:'short'}):'')+'</div></div>').join('')||'<div class="mut">Inbox clear.</div>');
  vhagarNotes();
+}
+function dueStrip(){
+ const d=dueNow();if(!d.length)return '';
+ return '<div class="duestrip" onclick="push();PAGE=\'reminders\';DB.set(\'page\',\'reminders\');render()">'+
+  '<span class="duen">'+d.length+'</span>'+
+  '<div><b>Due now</b> — '+d.slice(0,3).map(x=>esc(x.name)).join(', ')+(d.length>3?' and '+(d.length-3)+' more':'')+
+  '<div class="mut" style="font-size:11.5px;margin-top:2px">Tap to tick them off</div></div></div>';
 }
 /* rings + sleep + steps + date, all in one block */
 function ringBlock(r,G,size){
@@ -658,6 +686,8 @@ function sumFitness(){
  else lines.push('<span class="warnx">Sleep not recorded at all. Wear the watch overnight and recovery becomes readable.</span>');
  const nlog=Object.keys(logs).length;
  lines.push(nlog?'<b>'+nlog+'</b> session'+(nlog===1?'':'s')+' logged by hand.':'<span class="mut">Nothing logged by hand yet.</span>');
+ const rs=reminders(),dn=rs.filter(x=>tickedToday(x.id)).length;
+ if(rs.length)lines.push(dn+' of '+rs.length+' reminders ticked today'+(dueNow().length?', <b>'+dueNow().length+'</b> still due.':'.'));
  if(noEggs())lines.push('Eggs are out, which removes four of your six breakfast options. Swaps are on the nutrition page.');
  const rl=ruleFor(null);
  if(rl.key!=='normal')lines.push('Today is <b>'+esc(rl.label.toLowerCase())+'</b> \u2014 '+esc(rl.short.toLowerCase())+'.');
@@ -1363,6 +1393,196 @@ async function toggleMic(){
   rec.start();
  }catch(err){setMic(false);vSay('Could not start speech recognition: '+esc(String(err&&err.message||err))+'.');}
 }
+
+
+/* ══════ what changed — plain English, newest first ══════ */
+const CHANGELOG=[
+ {v:'v15', d:'2026-07-30', h:'Reminders, and a note about what is new',
+  items:[
+   ['Reminders page','Vitamins, fish oil, protein shake, weigh-in, export and workout log. Tick them off, see streaks and a 30-day adherence figure, and a 14-day grid of what you actually did.'],
+   ['Due-now strip on Home','Anything past its time shows at the top until you tick it.'],
+   ['This panel','So you can see what moved without asking.'],
+   ['Evening nudge','At 8:30pm Vhagar checks whether the export landed and whether a workout is on it. One or two lines, no lecture.']
+  ]},
+ {v:'v14', d:'2026-07-30', h:'No eggs, and four days of new data',
+  items:[
+   ['Eggs excluded everywhere','Not just vegetarian days. Six recipes hidden. The four egg breakfasts are struck through with paneer, curd or soya swaps beside them.'],
+   ['Health data through 30 July','Eleven days. Weight down to 69.9 on the 28th from 71.3. Sleep now recorded three nights, and the resting heart rate tracks it.']
+  ]},
+ {v:'v13', d:'2026-07-30', h:'How you eat, by day',
+  items:[
+   ['Weekly eating rules','Fasting Mondays, vegetarian Tuesdays. Set per day in Nutrition.'],
+   ['Recipes tagged','All 45 sorted into veg, egg and non-veg, and filtered by whatever rule the day carries.'],
+   ['Fasting counter','On a fasting day the meals page shows 1 of 1 and turns red on a second.']
+  ]},
+ {v:'v12', d:'2026-07-26', h:'Published data stops going stale',
+  items:[
+   ['Data ships with the page','health_data.json now sits next to index.html, so publishing carries the latest export instead of a snapshot frozen at build time.'],
+   ['Settings names the source','It tells you whether it loaded the feed, the sibling file, or the built-in fallback.']
+  ]},
+ {v:'v11', d:'2026-07-26', h:'Vhagar gets her real colours',
+  items:[
+   ['The logo','Bronze with a greenish-blue wing and a bright green eye. That is her canon colouring, confirmed by Martin\'s team to the calendar artist.'],
+   ['In the chat too','She is the avatar on every message and in the Talk to Vhagar header.']
+  ]},
+ {v:'v10', d:'2026-07-26', h:'Automatic publishing',
+  items:[
+   ['Twice-daily refresh','Vhagar pulls the newest export from Drive at 7am and 9pm; your machine pushes it twenty minutes later.'],
+   ['A stop button','A .hold file in the site folder stops the scheduler pushing a half-finished change.']
+  ]}
+];
+function lastSeen(){return DB.get('seenVersion','');}
+function markSeen(){DB.set('seenVersion',CHANGELOG[0].v);render();}
+function unseenCount(){
+ const s=lastSeen();if(!s)return 1;
+ const i=CHANGELOG.findIndex(c=>c.v===s);
+ return i<0?1:i;
+}
+function whatsNew(){
+ const n=unseenCount(),open=DB.get('newsOpen',false);
+ const show=open?CHANGELOG.slice(0,6):CHANGELOG.slice(0,1);
+ return '<div class="card news" style="margin-bottom:13px">'+
+  '<h3>What changed'+
+   (n?'<span class="b s">'+n+' new</span>':'<span class="b n">up to date</span>')+
+  '</h3>'+
+  show.map(c=>'<div class="newsent">'+
+    '<div class="newsh"><b>'+esc(c.h)+'</b><span class="tm">'+esc(c.d)+' &middot; '+esc(c.v)+'</span></div>'+
+    c.items.map(it=>'<div class="newsi"><b>'+esc(it[0])+'</b> — '+esc(it[1])+'</div>').join('')+
+   '</div>').join('')+
+  '<div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">'+
+   '<button class="btn gh sm" onclick="DB.set(\'newsOpen\','+(open?'false':'true')+');render()">'+(open?'Show less':'Show earlier changes')+'</button>'+
+   (n?'<button class="btn sm" onclick="markSeen()">Mark as read</button>':'')+
+  '</div></div>';
+}
+
+/* ══════ REMINDERS ══════ */
+const REM_DEF=[
+ {id:'vitamins', name:'Vitamins',      time:'08:00', when:'Morning, with food',        cat:'supplement'},
+ {id:'fishoil',  name:'Fish oil',      time:'08:00', when:'Morning, with food',        cat:'supplement'},
+ {id:'protein',  name:'Protein shake', time:'10:30', when:'After training',            cat:'supplement'},
+ {id:'weight',   name:'Weigh in',      time:'06:30', when:'Empty stomach, before food',cat:'log'},
+ {id:'export',   name:'Export health data', time:'21:00', when:'Phone shortcut to Drive', cat:'log'},
+ {id:'logwk',    name:'Log the workout',    time:'20:00', when:'Talk to Vhagar or the table', cat:'log'}
+];
+function reminders(){const s=DB.get('reminders',null);return s&&s.length?s:JSON.parse(JSON.stringify(REM_DEF));}
+function saveRems(r){DB.set('reminders',r);}
+function ticks(){return DB.get('ticks',{});}          /* {'2026-07-30':{vitamins:true}} */
+function tickedToday(id){return !!(ticks()[iso(new Date())]||{})[id];}
+function toggleTick(id){
+ const t=ticks(),k=iso(new Date());t[k]=t[k]||{};
+ if(t[k][id])delete t[k][id];else t[k][id]=new Date().toISOString();
+ DB.set('ticks',t);render();
+}
+function streak(id){
+ const t=ticks();let n=0,d=new Date();
+ /* today only counts if already done; otherwise start from yesterday */
+ if(!(t[iso(d)]||{})[id])d.setDate(d.getDate()-1);
+ for(;;){if((t[iso(d)]||{})[id]){n++;d.setDate(d.getDate()-1);}else break;}
+ return n;
+}
+function adherence(id,days){
+ const t=ticks();let hit=0;
+ for(let i=0;i<days;i++){const d=new Date();d.setDate(d.getDate()-i);if((t[iso(d)]||{})[id])hit++;}
+ return Math.round(hit/days*100);
+}
+function mins(hhmm){const p=String(hhmm||'00:00').split(':');return (+p[0])*60+(+p[1]||0);}
+function nowMins(){const d=new Date();return d.getHours()*60+d.getMinutes();}
+function dueNow(){
+ return reminders().filter(r=>!tickedToday(r.id)&&nowMins()>=mins(r.time));
+}
+function upNext(){
+ return reminders().filter(r=>!tickedToday(r.id)&&nowMins()<mins(r.time))
+  .sort((a,b)=>mins(a.time)-mins(b.time));
+}
+/* browser notifications, only while the page is open */
+let NOTIFTIMER=null;
+function notifSupported(){return typeof Notification!=='undefined';}
+function notifState(){return notifSupported()?Notification.permission:'unsupported';}
+async function askNotif(){
+ if(!notifSupported())return;
+ try{await Notification.requestPermission();}catch(e){}
+ render();
+}
+function fireDue(){
+ if(notifState()!=='granted')return;
+ const sent=DB.get('notified',{}),k=iso(new Date());
+ const todays=sent[k]||{};
+ dueNow().forEach(r=>{
+  if(todays[r.id])return;
+  try{new Notification('Vhagar',{body:r.name+' — '+r.when,tag:'vh-'+r.id});}catch(e){}
+  todays[r.id]=1;
+ });
+ sent[k]=todays;DB.set('notified',sent);
+}
+function startNotifLoop(){
+ if(NOTIFTIMER)clearInterval(NOTIFTIMER);
+ fireDue();
+ NOTIFTIMER=setInterval(fireDue,60000);
+}
+function pgReminders(){
+ const rs=reminders(),due=dueNow(),next=upNext();
+ const st=notifState();
+ const donetoday=rs.filter(r=>tickedToday(r.id)).length;
+ $('body').innerHTML=
+ '<div style="margin-bottom:16px"><div style="font-size:23px;font-weight:800;letter-spacing:-.025em">Reminders</div>'+
+  '<div class="mut" style="font-size:13px">'+donetoday+' of '+rs.length+' done today</div></div>'+
+
+ (due.length?'<div class="card" style="margin-bottom:13px;border-color:rgba(242,166,60,.4)"><h3>Due now<span class="b s">'+due.length+'</span></h3>'+
+   due.map(r=>remRow(r,true)).join('')+'</div>':
+   '<div class="card" style="margin-bottom:13px"><h3>Due now</h3><div class="mut" style="font-size:13.5px">Nothing outstanding. '+
+   (next.length?'Next is <b>'+esc(next[0].name)+'</b> at '+esc(next[0].time)+'.':'All done for today.')+'</div></div>')+
+
+ (next.length?'<div class="card" style="margin-bottom:13px"><h3>Later today</h3>'+next.map(r=>remRow(r,false)).join('')+'</div>':'')+
+
+ '<div class="card" style="margin-bottom:13px"><h3>Everything<button class="btn gh sm" onclick="addRem()">Add a reminder</button></h3>'+
+  '<div style="overflow-x:auto"><table><thead><tr><th></th><th>What</th><th>Time</th><th>Note</th><th>Streak</th><th>30d</th><th></th></tr></thead><tbody>'+
+  rs.map((r,i)=>{const done=tickedToday(r.id),ad=adherence(r.id,30);
+   return '<tr><td style="padding-left:8px"><button class="tickbox'+(done?' on':'')+'" onclick="toggleTick(\''+r.id+'\')" title="'+(done?'Undo':'Mark done')+'">'+(done?'&#10003;':'')+'</button></td>'+
+   '<td><input value="'+esc(r.name)+'" oninput="setRem('+i+',\'name\',this.value)"></td>'+
+   '<td><input type="time" value="'+esc(r.time)+'" style="width:104px" oninput="setRem('+i+',\'time\',this.value)"></td>'+
+   '<td><input value="'+esc(r.when||'')+'" oninput="setRem('+i+',\'when\',this.value)"></td>'+
+   '<td class="tm">'+(streak(r.id)?streak(r.id)+'d':'—')+'</td>'+
+   '<td class="tm" style="color:'+(ad>=80?'var(--gr)':ad>=50?'var(--sun2)':'var(--tx3)')+'">'+ad+'%</td>'+
+   '<td><button class="btn dg sm" onclick="delRem('+i+')">&times;</button></td></tr>';}).join('')+
+  '</tbody></table></div></div>'+
+
+ '<div class="card" style="margin-bottom:13px"><h3>Last 14 days</h3>'+histGrid(rs)+'</div>'+
+
+ '<div class="card"><h3>Alerts<span class="b '+(st==='granted'?'g':'n')+'">'+
+   ({granted:'On',denied:'Blocked',default:'Not asked',unsupported:'Unsupported'}[st])+'</span></h3>'+
+  (st==='granted'
+   ?'<div style="font-size:13.5px;color:var(--tx2)">Vhagar will pop a desktop alert when something falls due, checked once a minute.</div>'
+   :st==='denied'
+   ?'<div style="font-size:13.5px;color:var(--tx2)">You blocked notifications for this site. Undo it via the padlock in the address bar, then reload.</div>'
+   :st==='unsupported'
+   ?'<div style="font-size:13.5px;color:var(--tx2)">This browser has no notification support.</div>'
+   :'<div style="font-size:13.5px;color:var(--tx2);margin-bottom:11px">Turn on desktop alerts for anything due.</div><button class="btn" onclick="askNotif()">Enable alerts</button>')+
+  '<div class="warn" style="margin-top:13px"><b>Be clear about what this is.</b> These only fire while Vhagar is open in a tab. '+
+  'A web page cannot wake your phone or your laptop when it is closed — that needs a push server, which needs a backend. '+
+  'For alerts that reach you anywhere, set these same times in your phone\'s Reminders or Clock app. This page is for tracking whether you actually did them.</div></div>';
+ startNotifLoop();
+}
+function remRow(r,isDue){
+ return '<div class="row"><div style="display:flex;gap:11px;align-items:center">'+
+  '<button class="tickbox" onclick="toggleTick(\''+r.id+'\')"></button>'+
+  '<div><div class="t">'+esc(r.name)+'</div><div class="s">'+esc(r.when||'')+'</div></div></div>'+
+  '<span class="tm"'+(isDue?' style="color:var(--sun2)"':'')+'>'+esc(r.time)+'</span></div>';
+}
+function histGrid(rs){
+ const days=[];for(let i=13;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days.push(d);}
+ const t=ticks();
+ return '<div style="overflow-x:auto"><table class="histt"><thead><tr><th></th>'+
+  days.map(d=>'<th>'+d.getDate()+'</th>').join('')+'</tr></thead><tbody>'+
+  rs.map(r=>'<tr><td class="w" style="white-space:nowrap">'+esc(r.name)+'</td>'+
+   days.map(d=>{const on=(t[iso(d)]||{})[r.id];
+    return '<td style="text-align:center"><span class="hcell'+(on?' on':'')+'"></span></td>';}).join('')+'</tr>').join('')+
+  '</tbody></table></div>';
+}
+function setRem(i,f,v){const r=reminders();r[i][f]=v;saveRems(r);}
+function delRem(i){const r=reminders();if(!confirm('Remove "'+r[i].name+'"?'))return;r.splice(i,1);saveRems(r);render();}
+function addRem(){const r=reminders();
+ r.push({id:'r'+Date.now(),name:'New reminder',time:'09:00',when:'',cat:'custom'});
+ saveRems(r);render();}
 
 /* ══════ SETTINGS ══════ */
 function pgSettings(){
