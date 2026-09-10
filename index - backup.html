@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-<link rel="stylesheet" href="measurements.css">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -285,7 +284,6 @@ td.w{font-weight:650;color:var(--tx2);padding-left:8px;font-size:12.5px}
   <button class="mt" onclick="document.getElementById('side').classList.toggle('open')">&#9776; Menu</button>
   <div id="crumb"></div>
   <div id="subnav"></div>
-  <div id="vhagar-measurements"></div>
   <div id="body"><div class="load">Loading…</div></div>
  </main>
 </div>
@@ -1682,11 +1680,5 @@ async function loadMail(){
 window.addEventListener('resize',()=>{clearTimeout(window.__r);window.__r=setTimeout(()=>{if(PAGE!=='talk')render();},260);});
 
 </script>
-
-<div id="vhagar-measurements"></div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="measurements.js"></script>
 </body>
 </html>

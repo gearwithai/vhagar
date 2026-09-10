@@ -26,8 +26,8 @@
             // The anon key is safe to publish ONLY because measurements.sql
             // turns on RLS and scopes every policy to auth.uid(). If you ever
             // disable RLS on those tables, this key becomes a public door.
-            url: '',
-            anonKey: ''
+            url: 'https://qndsoluwrotqomckeqvy.supabase.co',
+            anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFuZHNvbHV3cm90cW9tY2tlcXZ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE0NDYzNzAsImV4cCI6MjA4NzAyMjM3MH0.D9tVUS8C0zzEeNxa-DigXRminhhh8PX4-CNWWhfaJa0'
         },
         healthDataUrl: 'health_data.json',
         // Sign-in email for the magic link. Prefilled to save typing at 6am.
